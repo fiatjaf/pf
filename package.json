@@ -1,0 +1,23 @@
+{
+  "name": "pf",
+  "version": "0.1.0",
+  "description": "prato feito",
+  "main": "pf.js",
+  "dependencies": {
+    "commander": "^2.11.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fiatjaf/pf.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fiatjaf/pf/issues"
+  },
+  "homepage": "https://github.com/fiatjaf/pf#readme"
+}
