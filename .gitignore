@@ -2,5 +2,5 @@
 *.swp
 node_modules
 *.env
-*.txt
 package-lock.json
+database
