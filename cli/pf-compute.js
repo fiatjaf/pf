@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var program = require('commander')
+const program = require('commander')
 
 program
   .option('-n, --lines <n>', 'last <n> facts')
