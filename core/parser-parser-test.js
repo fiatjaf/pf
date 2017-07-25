@@ -1,13 +1,10 @@
-global.window = {}
-window.chevrotain = require('chevrotain')
-
-const {parseRule} = require('./parser-parser')
+const patternParser = require('./parser-parser')
 const {makeLineParser} = require('./parser')
 const tape = require('tape')
 
 tape('parsing user-defined rule definitions', t => {
   var rule = ' <word> banana[^@boat] (de|a)'
-  t.deepEqual(parseRule(rule), {
+  t.deepEqual(patternParser.parse(rule), {
     value: [
       {kind: 'parameter', name: 'word', type: 'word', multiple: false},
       {kind: 'whitespace'},
@@ -21,12 +18,11 @@ tape('parsing user-defined rule definitions', t => {
         [{kind: 'literal', string: 'a'}]
       ]}
     ],
-    lexErrors: [],
-    parseErrors: []
+    status: true
   }, rule)
 
   rule = 'pagamentos: <pagamentos:money...> [em <date>]'
-  t.deepEqual(parseRule(rule), {
+  t.deepEqual(patternParser.parse(rule), {
     value: [
       {kind: 'literal', string: 'pagamentos:'},
       {kind: 'whitespace'},
@@ -40,8 +36,7 @@ tape('parsing user-defined rule definitions', t => {
         ]
       ]}
     ],
-    lexErrors: [],
-    parseErrors: []
+    status: true
   }, rule)
 
   t.end()
@@ -121,7 +116,7 @@ tape('parsing a line', t => {
 tape('both things', t => {
   t.deepEqual(
     makeLineParser(
-      parseRule(
+      patternParser.parse(
         'pac[iente] <pac:words> [da|do] dr[a][.] <dent:words> pag[ou|.][:] <money> [dia <date>]'
       ).value
     ).tryParse('paciente beltrano armando da dra. mariana gastón pagou: 600 dia 18/12/2001'), {
@@ -134,7 +129,7 @@ tape('both things', t => {
 
   t.deepEqual(
     makeLineParser(
-      parseRule(
+      patternParser.parse(
         '<someone:words> [has] paid <money> [on <date>]'
       ).value
     ).tryParse('someone else has paid 12 on 23/11/2019'), {
@@ -146,7 +141,7 @@ tape('both things', t => {
 
   t.deepEqual(
     makeLineParser(
-      parseRule(
+      patternParser.parse(
         '<someone:words> [has] paid <money> [on <date>]'
       ).value
     ).tryParse('someone else paid 12 on 23/11/2019'), {
@@ -158,7 +153,7 @@ tape('both things', t => {
 
   t.deepEqual(
     makeLineParser(
-      parseRule(
+      patternParser.parse(
         'chegou <someone:words>'
       ).value
     ).tryParse('chegou fulano'), {
@@ -171,7 +166,7 @@ tape('both things', t => {
   today.setDate(15)
   t.deepEqual(
     makeLineParser(
-      parseRule(
+      patternParser.parse(
         '<nome:words> [do <quarto:numberword>] pagou <valor:money> [dia <date>]'
       ).value
     ).tryParse('Maria Angélica do C2 pagou 777,40 dia 15'), {

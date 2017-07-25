@@ -1,138 +1,75 @@
-const {createToken, Lexer, Parser} = window.chevrotain
+const P = require('parsimmon')
 
 const unicodeLetter = require('./helpers/unicode-letter')
 
-module.exports.parseRule = parseRule
+const lt = P.string('<')
+const gt = P.string('>')
+const lsquare = P.string('[')
+const rsquare = P.string(']')
+const lbracket = P.string('(')
+const rbracket = P.string(')')
+const ellipsis = P.alt(P.string('…'), P.string('...'))
+const colon = P.string(':')
+const vertical = P.string('|')
+const word = P.regexp(new RegExp(`${unicodeLetter}+`))
 
-const WORD = createToken({
-  name: 'WORD',
-  label: 'word',
-  pattern: new RegExp(unicodeLetter + '+')
-})
-const NUMBER = createToken({name: 'NUMBER', pattern: /\d+/, label: 'number'})
-const WHITESPACE = createToken({name: 'WHITESPACE', pattern: /\s+/})
-const ANYTHING = createToken({name: 'ANYTHING', pattern: /[^\s\[\]\(\):><\d\w]+/, label: 'anything'})
-const LT = createToken({name: 'LT', pattern: /</, label: '<'})
-const GT = createToken({name: 'GT', pattern: />/, label: '>'})
-const LSQUARE = createToken({name: 'LSQUARE', pattern: /\[/, label: '['})
-const RSQUARE = createToken({name: 'RSQUARE', pattern: /]/, label: ']'})
-const LBRACKET = createToken({name: 'LBRACKET', pattern: /\(/, label: '('})
-const RBRACKET = createToken({name: 'RBRACKET', pattern: /\)/, label: ')'})
-const ELLIPSIS = createToken({name: 'ELLIPSIS', pattern: /…|\.\.\./, label: '…'})
-const COLON = createToken({name: 'COLON', pattern: /:/, label: ':'})
-const DIRECTIVE = createToken({
-  name: 'DIRECTIVE',
-  pattern: /words|word|numberword|money|date|number/,
-  label: 'directive'
-})
-const VERTICALBAR = createToken({name: 'VERTICALBAR', pattern: /|/, label: '|'})
+const directive = P.alt(
+  P.string('words'),
+  P.string('word'),
+  P.string('numberword'),
+  P.string('money'),
+  P.string('date'),
+  P.string('number')
+)
 
-let tokens = [
-  WHITESPACE, LT, GT, VERTICALBAR, LSQUARE, RSQUARE, LBRACKET, RBRACKET,
-  ELLIPSIS, COLON, DIRECTIVE, NUMBER, WORD, ANYTHING
-]
-let lexer = new Lexer(tokens)
+const parameter = P.seq(
+  lt,
+  P.seq(word, colon).atMost(1).map(([wc]) => wc && wc[0]),
+  directive,
+  ellipsis.atMost(1).map(([elp]) => Boolean(elp)),
+  gt
+).map(([_, name, directive, multiple]) => ({
+  kind: 'parameter',
+  name: name || directive,
+  type: directive,
+  multiple
+}))
 
-function RuleParser (input) {
-  Parser.call(this, input, tokens, {recoveryEnabled: true})
-  var $ = this
+const optional = P.seq(
+  lsquare,
+  P.lazy(() => main).sepBy1(vertical),
+  rsquare
+).map(([_, alternatives]) => ({
+  kind: 'optional',
+  alternatives
+}))
 
-  $.RULE('main', () => {
-    return $.AT_LEAST_ONE(() =>
-      $.OR([
-        {ALT: () => $.CONSUME(WHITESPACE) && {kind: 'whitespace'} },
-        {ALT: () => $.SUBRULE($.parameter) },
-        {ALT: () => $.SUBRULE($.optional) },
-        {ALT: () => $.SUBRULE($.alternatives) },
-        {ALT: () => $.SUBRULE($.literal) }
-      ])
-    )
-  })
+const alternatives = P.seq(
+  lbracket,
+  P.lazy(() => main).sepBy1(vertical),
+  rbracket
+).map(([_, alternatives]) => ({
+  kind: 'alternatives',
+  alternatives
+}))
 
-  $.RULE('parameter', () => {
-    var name
-    $.CONSUME(LT)
-    $.OPTION1(() => {
-      name = $.CONSUME(WORD).image
-      $.CONSUME(COLON)
-    })
-    let type = $.CONSUME2(DIRECTIVE).image
-    var multiple = false
-    $.OPTION2(() => {
-      if ($.CONSUME(ELLIPSIS)) {
-        multiple = true
-      }
-    })
-    $.CONSUME(GT)
+const literal = P.noneOf('[<()>]| ')
+  .atLeast(1)
+  .map(results => ({kind: 'literal', string: results.join('')}))
 
-    if (!name) name = type
+var main = P.alt(
+  P.whitespace.result({kind: 'whitespace'}),
+  parameter,
+  optional,
+  alternatives,
+  literal
+).atLeast(1)
 
-    return {kind: 'parameter', name, type, multiple}
-  })
-
-  $.RULE('alternatives', () => {
-    $.CONSUME(LBRACKET)
-    let alternatives = $.SUBRULE($.or)
-    $.CONSUME(RBRACKET)
-    return {kind: 'alternatives', alternatives}
-  })
-
-  $.RULE('optional', () => {
-    $.CONSUME(LSQUARE)
-    let alternatives = $.SUBRULE($.or)
-    $.CONSUME(RSQUARE)
-    return {kind: 'optional', alternatives}
-  })
-
-  $.RULE('literal', () => {
-    let string = $.SUBRULE($.anything)
-    return {kind: 'literal', string}
-  })
-
-  $.RULE('or', () => {
-    var alternatives = []
-    $.AT_LEAST_ONE_SEP({
-      SEP: VERTICALBAR,
-      DEF: () => {
-        let alt = $.SUBRULE($.main)
-        alternatives.push(alt)
-      }
-    })
-    return alternatives
-  })
-
-  $.RULE('anything', () => {
-    var string = ''
-    $.AT_LEAST_ONE(() => {
-      string += $.OR([
-        {ALT: () => $.CONSUME(LT).image },
-        {ALT: () => $.CONSUME(GT).image },
-        {ALT: () => $.CONSUME(COLON).image },
-        {ALT: () => $.CONSUME(ELLIPSIS).image },
-        {ALT: () => $.CONSUME(WORD).image },
-        {ALT: () => $.CONSUME(NUMBER).image },
-        {ALT: () => $.CONSUME(ANYTHING).image }
-      ])
-    })
-    return string
-  })
-
-  Parser.performSelfAnalysis(this)
-}
-
-RuleParser.prototype = Object.create(Parser.prototype)
-RuleParser.prototype.constructor = RuleParser
-
-let ruleParser = new RuleParser([])
-
-function parseRule (text) {
-  let lexResult = lexer.tokenize(text.trim())
-  ruleParser.input = lexResult.tokens
-  let value = ruleParser.main()
-
-  return {
-    value,
-    lexErrors: lexResult.errors,
-    parseErrors: ruleParser.errors
+module.exports = {
+  parse (pattern) {
+    return main.parse(pattern.trim())
+  },
+  tryParse (pattern) {
+    return main.tryParse(pattern.trim())
   }
 }
