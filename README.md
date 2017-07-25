@@ -40,6 +40,58 @@ and for the "paid ..." rule you would
 
 Then you end up with a JSON object with all the data you need and you can use different tools, like [jq](https://stedolan.github.io/jq/), to crunch the data and produce reports, charts, prints and other useful stuff.
 
+```json
+{
+  "days": {
+    "2018-02-30": {
+      "sales": [
+        {
+          "item": "cashmere",
+          "q": 2,
+          "amount": 104
+        },
+        {
+          "item": "wool",
+          "q": 4,
+          "amount": 150
+        },
+        {
+          "item": "cashmere",
+          "q": 6,
+          "amount": 312
+        }
+      ],
+      "payments": [
+        {
+          "target": "cashmere supplier",
+          "amount": 200
+        },
+        {
+          "target": "maria",
+          "amount": 250
+        }
+      ],
+      "balance": 116
+    }
+  },
+  "inventory": {
+    "cashmere": 177,
+    "wool": 328
+  },
+  "employees": {
+    "maria": {
+      "monthly_payments": {
+        "2018-02": [
+          200,
+          250 
+        ] 
+      },
+      "outstanding_balance": 550
+    } 
+  }
+}
+```
+
 If you decide later to start keeping track of things in a different way or to change your schema entirely, you just have to rewrite your rules, the facts will continue to be the same.
 
 
