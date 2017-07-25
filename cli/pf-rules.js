@@ -27,7 +27,7 @@ program
 
     if (kind === 'js') {
       let newcontents = await editFile(`/*
- * pattern: <name:word> has paid <currency>
+ * pattern: <name:word> has paid <money>
  */
 
 module.exports = function (state, params, timestamp) {

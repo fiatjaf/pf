@@ -21,7 +21,7 @@ module.exports.from = async function (state) {
     if (!ok) {
       console.log(`error parsing pattern '${rule.pattern}:
   expected '${expected.join(', ')}' at index ${index.offset}
-  but instead got '${rule.pattern[index.offset]}'`)
+  but instead got '${rule.pattern[index.offset]}' (${rule.pattern.slice(index.offset-2, index.offset+2)})`)
       continue
     }
     let lineParser = makeLineParser(directives)

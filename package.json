@@ -1,8 +1,10 @@
 {
-  "name": "pf",
+  "name": "pf-cli",
   "version": "0.1.0",
   "description": "prato feito",
-  "main": "pf.js",
+  "bin": {
+    "pf": "cli/pf.js"
+  },
   "dependencies": {
     "commander": "^2.11.0",
     "cuid": "^1.3.8",
