@@ -10,6 +10,7 @@
   "dependencies": {
     "commander": "^2.11.0",
     "editor": "^1.0.0",
+    "mkdirp": "^0.5.1",
     "pf-core": "^0.1.1",
     "prompt-autocompletion": "^0.1.1",
     "sifter": "^0.5.2",

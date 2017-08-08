@@ -92,8 +92,14 @@ program
       return
     }
 
+    if (rule.pattern === pattern && rule.code === newcontents) {
+      console.log('nothing has changed.')
+      return
+    }
+
     rule.pattern = pattern
     rule.code = newcontents
+
     updateRule(rule)
       .then(() => console.log(`updated ${ruleId}.`))
       .catch(e => console.error(e))

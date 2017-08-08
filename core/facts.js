@@ -1,10 +1,13 @@
 const db = require('./db')
 
 module.exports.listFacts = listFacts
-async function listFacts () {
+async function listFacts (startkey, endkey) {
+  startkey = startkey || 'f:'
+  endkey = endkey || 'f:~'
+
   let res = await db.allDocs({
-    startkey: 'f:',
-    endkey: 'f:~',
+    startkey,
+    endkey,
     include_docs: true
   })
   return res.rows.map(r => r.doc)
