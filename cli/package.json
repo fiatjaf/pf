@@ -1,6 +1,6 @@
 {
   "name": "pf-cli",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "",
   "main": "pf.js",
   "license": "ISC",
@@ -10,7 +10,7 @@
   "dependencies": {
     "commander": "^2.11.0",
     "editor": "^1.0.0",
-    "pf-core": "*",
+    "pf-core": "^0.1.1",
     "prompt-autocompletion": "^0.1.1",
     "sifter": "^0.5.2",
     "tempfile": "^2.0.0"
