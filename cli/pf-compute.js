@@ -1,36 +1,41 @@
 #!/usr/bin/env node
 const program = require('commander')
-const path = require('path')
-const fs = require('fs')
-const mkdirp = require('mkdirp')
+const debug = require('debug')('pf-cli:pf-compute')
 
-const compute = require('../core/compute')
+const compute = require('pf-core/compute')
+const cached = require('./helpers/cached')
 
 program
-  .option('-s, --scratch', 'compute from scratch')
-  .description(`by default, this will look for a temporary file where the supposedly last updated version of the computed state has been stored and compute from that. If it is not found, then it will compute from scratch. You can force this behavior by passing -s.`)
+  .option('-r, --reset', 'compute from scratch')
+  .description(`by default, this will look for a temporary file where the supposedly last updated version of the computed state has been stored and compute from that. If it is not found, then it will compute from scratch. You can force this behavior by passing -r.`)
   .parse(process.argv)
 
 async function main (cmd) {
   var initial = {}
   var lastFact
 
-  let tempPath = path.join('/tmp', process.cwd())
-  let tempFile = path.join(tempPath, 'state.json')
-  if (!cmd.scratch) {
-    try {
-      let d = fs.readFileSync(tempFile, 'utf-8')
-      let current = JSON.parse(d)
-      initial = current.state
-      lastFact = current.last
-    } catch (e) {}
+  if (cmd.reset) {
+    debug('will reset.')
+  } else {
+    debug('will read from cache.')
+
+    let current = cached.read()
+    initial = current.state
+    lastFact = current.lastFact
+
+    debug(`state read: %j`, initial)
+    debug(`last fact read: ${lastFact}`)
+  }
+
+  if (!initial) {
+    initial = {}
+    lastFact = undefined
   }
 
   let {state, last} = await compute.from(initial, lastFact)
-  console.log(JSON.stringify(state, null, 2))
 
-  mkdirp.sync(tempPath)
-  fs.writeFileSync(tempFile, JSON.stringify({state, last}), {encoding: 'utf-8'})
+  console.log(JSON.stringify(state))
+  cached.write(state, last)
 }
 
 main(program)

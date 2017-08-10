@@ -20,10 +20,13 @@ async function addFact (line, time) {
     throw new Error('date is invalid.')
   }
 
-  return db.put({
+  var doc = {
     _id: `f:${parseInt(time.getTime() / 1000)}`,
     line
-  })
+  }
+  let res = db.put(doc)
+  doc._rev = res.rev
+  return doc
 }
 
 module.exports.fetchFact = fetchFact

@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 const program = require('commander')
 
-const {addRule, listRules, fetchRule, delRule, updateRule} = require('../core/rules')
+const {addRule, listRules, fetchRule, delRule, updateRule} = require('pf-core/rules')
 const autocompleteRules = require('./helpers/autocomplete-rules')
 const editFile = require('./helpers/edit')
+const {formatRule} = require('./helpers/format')
+const cached = require('./helpers/cached')
 
 program
   .command('list')
@@ -14,7 +16,7 @@ program
     let rules = await listRules()
     rules
       .slice(-nlines)
-      .forEach(rule => console.log(`${rule._id}: ${rule.pattern}`))
+      .forEach(rule => console.log(formatRule(rule)))
   })
 
 program
@@ -50,6 +52,7 @@ module.exports = function (state, params, timestamp) {
 
       console.log(kind, pattern, newcontents)
       addRule(kind, pattern, newcontents)
+        .then(cached.reset)
         .then(() => console.log('rule added.'))
         .catch(e => console.error(e))
       return
@@ -101,6 +104,7 @@ program
     rule.code = newcontents
 
     updateRule(rule)
+      .then(cached.reset)
       .then(() => console.log(`updated ${ruleId}.`))
       .catch(e => console.error(e))
   })
@@ -117,6 +121,7 @@ program
     }
 
     fetchRule(ruleId).then(delRule)
+      .then(cached.reset)
       .then(() => console.log(`removed '${ruleId}'.`))
       .catch(e => console.error(e))
   })

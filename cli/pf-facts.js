@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 const program = require('commander')
+const {yellow, gray, red, green} = require('chalk')
 
-const {addFact, listFacts, fetchFact, delFact, updateFact} = require('../core/facts')
-const {formatLine} = require('./helpers/line')
+const {addFact, listFacts, fetchFact, delFact, updateFact} = require('pf-core/facts')
+const compute = require('pf-core/compute')
+
+const {formatLine, formatRule} = require('./helpers/format')
 const autocompleteFacts = require('./helpers/autocomplete-facts')
 const editFile = require('./helpers/edit')
+const cached = require('./helpers/cached')
 
 program
   .command('list')
@@ -23,10 +27,31 @@ program
   .description('add a new fact')
   .option('-d, --date <date>',
     'add this fact with the given date, instead of now.', d => new Date(d))
-  .action((line, cmd) => {
-    addFact(line, cmd.date)
-      .then(() => console.log(`added '${line}'.`))
-      .catch(e => console.error(e))
+  .action(async (line, cmd) => {
+    let fact = await addFact(line, cmd.date)
+    console.log(` ${yellow(':')} added '${gray(line)}'.`)
+
+    // compute everything till this point so we can compute this fact
+    let prev = cached.read()
+    let res = await compute.from(prev.state, prev.last)
+
+    // compute the fact
+    let reducers = await compute.reducers()
+    let {state, matched, errors, diff} = await compute.next(res.state, reducers, fact)
+
+    // write to cache
+    cached.write(state, fact._id)
+
+    // print all the info
+    matched.forEach(rule =>
+      console.log(` ${green('>')} matched rule ${formatRule(rule)}`)
+    )
+
+    errors.forEach(err =>
+      console.log(` ${red('>')} error: ${err}`)
+    )
+
+    console.log('diff:', diff)
   })
 
 program
@@ -57,6 +82,7 @@ program
 
     fact.line = newline
     updateFact(fact)
+      .then(cached.reset)
       .then(() => console.log(`updated ${factId}.`))
       .catch(e => console.error(e))
   })
@@ -73,6 +99,7 @@ program
     }
 
     fetchFact(factId).then(delFact)
+      .then(cached.reset)
       .then(() => console.log(`removed '${factId}'.`))
       .catch(e => console.error(e))
   })

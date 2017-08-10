@@ -8,12 +8,15 @@
     "pf": "pf.js"
   },
   "dependencies": {
+    "chalk": "^2.1.0",
     "commander": "^2.11.0",
+    "debug": "^3.0.0",
     "editor": "^1.0.0",
     "mkdirp": "^0.5.1",
     "pf-core": "^0.1.1",
     "prompt-autocompletion": "^0.1.1",
     "sifter": "^0.5.2",
+    "supports-color": "^4.2.1",
     "tempfile": "^2.0.0"
   }
 }

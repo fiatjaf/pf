@@ -1,9 +1,9 @@
 const Sifter = require('sifter')
 const Autocomplete = require('prompt-autocompletion')
 
-const {listFacts} = require('../../core/facts')
+const {listFacts} = require('pf-core/facts')
 
-const {formatLine} = require('./line')
+const {formatLine} = require('./format')
 
 module.exports = async function factsAutocompleter (message) {
   let facts = await listFacts()
