@@ -12,6 +12,7 @@
     "commander": "^2.11.0",
     "debug": "^3.0.0",
     "editor": "^1.0.0",
+    "jsondiffpatch": "^0.2.4",
     "mkdirp": "^0.5.1",
     "pf-core": "^0.1.1",
     "prompt-autocompletion": "^0.1.1",

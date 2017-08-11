@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const program = require('commander')
-const {yellow, gray, red, green} = require('chalk')
+const formatterConsole = require('jsondiffpatch/src/formatters/console')
+const {yellow, bgYellow, gray, red, green, blue} = require('chalk')
 
 const {addFact, listFacts, fetchFact, delFact, updateFact} = require('pf-core/facts')
 const compute = require('pf-core/compute')
@@ -34,7 +35,7 @@ program
 
     // now add this fact
     let fact = await addFact(line, cmd.date)
-    console.log(` ${yellow(':')} added '${gray(line)}'.`)
+    console.log(` ${yellow('#')} added '${bgYellow.black(line)}'.`)
 
     // then compute this fact
     let reducers = await compute.reducers()
@@ -52,7 +53,8 @@ program
       console.log(` ${red('>')} error: ${err}`)
     )
 
-    console.log('diff:', diff)
+    let f = formatterConsole.format(diff).split('\n').map(l => '  ' + l).join('\n')
+    console.log(` ${blue('>')} diff: ${gray(f)}`)
   })
 
 program

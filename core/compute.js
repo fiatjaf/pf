@@ -1,4 +1,5 @@
 const debug = require('debug')('pf-core:compute')
+const jsondiffpatch = require('jsondiffpatch')
 
 const {listRules} = require('./rules')
 const {listFacts} = require('./facts')
@@ -24,7 +25,7 @@ async function from (state, lastFact = 'f:0') {
   for (let i = 0; i < facts.length; i++) {
     fact = facts[i]
     debug(`computing fact ${fact.line}`)
-    await compute.next(state, reducers, fact)
+    await computeNext(state, reducers, fact)
   }
 
   return {
@@ -33,10 +34,9 @@ async function from (state, lastFact = 'f:0') {
   }
 }
 
-async function next (state, reducers, fact) {
+function computeNext (state, reducers, fact) {
   var matched = []
   var errors = []
-  var diff = null
 
   let timestamp = parseInt(fact._id.split(':')[1])
 
@@ -55,9 +55,15 @@ async function next (state, reducers, fact) {
   return {
     state,
     matched,
-    errors,
-    diff
+    errors
   }
+}
+
+async function next (state, reducers, fact) {
+  let before = jsondiffpatch.clone(state)
+  let res = computeNext(state, reducers, fact)
+  res.diff = jsondiffpatch.diff(before, res.state)
+  return res
 }
 
 async function reducers () {
