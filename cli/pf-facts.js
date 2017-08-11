@@ -28,14 +28,15 @@ program
   .option('-d, --date <date>',
     'add this fact with the given date, instead of now.', d => new Date(d))
   .action(async (line, cmd) => {
+    // compute everything till this point so we can compute this fact
+    let prev = cached.read()
+    let res = await compute.from(prev.state, prev.lastFact)
+
+    // now add this fact
     let fact = await addFact(line, cmd.date)
     console.log(` ${yellow(':')} added '${gray(line)}'.`)
 
-    // compute everything till this point so we can compute this fact
-    let prev = cached.read()
-    let res = await compute.from(prev.state, prev.last)
-
-    // compute the fact
+    // then compute this fact
     let reducers = await compute.reducers()
     let {state, matched, errors, diff} = await compute.next(res.state, reducers, fact)
 
