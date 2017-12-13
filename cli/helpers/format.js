@@ -10,3 +10,7 @@ module.exports.formatLine = fact => {
 }
 
 module.exports.formatRule = rule => `${cyan(rule._id)} ${bold('::')} ${rule.pattern}`
+
+module.exports.formatCheckpoint = chk => {
+  return `${cyan(formatId(chk._id))} ${bold('::')} JSON with ${JSON.stringify(chk.state).length} characters.`
+}

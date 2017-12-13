@@ -1,8 +1,22 @@
 #!/usr/bin/env node
 var program = require('commander')
 
-program
-  .option('-n, --lines <n>', 'last <n> facts')
-  .parse(process.argv)
+const {addCheckpoint, listCheckpoints, fetchCheckpoint,
+       delCheckpoint, updateCheckpoint} = require('pf-core/checkpoints')
 
-console.log(program)
+const {formatCheckpoint} = require('./helpers/format')
+
+program
+  .command('list')
+  .description('list checkpoints')
+  .option('-n <n>', 'last <n> checkpoints, defaults to 23.', parseInt)
+  .action(async cmd => {
+    let n = cmd.n || 23
+    let facts = await listCheckpoints()
+    facts
+      .slice(-n)
+      .forEach(fact => console.log(formatCheckpoint(fact)))
+  })
+
+program
+  .parse(process.argv)

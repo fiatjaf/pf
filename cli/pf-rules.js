@@ -10,12 +10,12 @@ const cached = require('./helpers/cached')
 program
   .command('list')
   .description('list rules')
-  .option('-n, --lines <n>', 'last <n> rules, defaults to 23.', parseInt)
+  .option('-n <n>', 'last <n> rules, defaults to 23.', parseInt)
   .action(async cmd => {
-    let nlines = cmd.lines || 23
+    let n = cmd.n || 23
     let rules = await listRules()
     rules
-      .slice(-nlines)
+      .slice(-n)
       .forEach(rule => console.log(formatRule(rule)))
   })
 

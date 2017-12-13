@@ -14,12 +14,12 @@ const cached = require('./helpers/cached')
 program
   .command('list')
   .description('list facts')
-  .option('-n, --lines <n>', 'last <n> facts, defaults to 23.', parseInt)
+  .option('-n <n>', 'last <n> facts, defaults to 23.', parseInt)
   .action(async cmd => {
-    let nlines = cmd.lines || 23
+    let n = cmd.n || 23
     let facts = await listFacts()
     facts
-      .slice(-nlines)
+      .slice(-n)
       .forEach(fact => console.log(formatLine(fact)))
   })
 
